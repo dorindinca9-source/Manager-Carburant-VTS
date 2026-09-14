@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7f7f4">
+<title>Manager Carburant VTS</title>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+:root{
+  --bg:#eef5fb;
+  --panel:#ffffff;
+  --text:#17324d;
+  --muted:#6b7f95;
+  --border:#d5e2ee;
+  --field:#fbfdff;
+  --blue:#0f568d;
+  --blue2:#174f80;
+  --blue-soft:#e8f4ff;
+  --green:#0aa35f;
+  --green-soft:#e8f8ef;
+  --red:#e43d3d;
+  --red-dark:#bf2222;
+  --purple:#6e42d7;
+  --purple-soft:#f1ebff;
+  --amber:#d98b00;
+  --amber-soft:#fff4dc;
+  --shadow:0 10px 26px rgba(26,78,121,.10);
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:linear-gradient(180deg,#eef6fc 0,#f7fbff 55%,#eef5fb 100%);color:var(--text);font-family:"Segoe UI",Arial,sans-serif;min-height:100vh}
+button,input,select{font:inherit}
+.app{max-width:1540px;margin:0 auto;padding:22px 28px 28px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#14598e,#0b4472);color:#fff;border-radius:14px;padding:20px 28px;box-shadow:var(--shadow);margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:18px}.brand-icon{width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:31px}.brand h1{margin:0;font-size:32px;line-height:1.05;letter-spacing:.2px}.brand p{margin:7px 0 0;color:#dcecff;font-size:16px}
+.top-meta{display:flex;align-items:center;gap:16px}.date-chip{border:1px solid rgba(255,255,255,.45);border-radius:10px;padding:12px 16px;min-width:240px;text-align:center;font-size:15px}.version{padding-left:18px;border-left:1px solid rgba(255,255,255,.35);font-weight:800;font-size:17px}.version small{display:block;font-size:11px;font-weight:500;opacity:.8;margin-top:3px;text-align:center}
+.dashboard{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(470px,.9fr);gap:18px;align-items:stretch}
+.card{background:rgba(255,255,255,.96);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:22px 24px}
+.card-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}.head-icon{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:25px;background:var(--blue-soft);color:#0d6dc3}.head-icon.green{background:var(--green-soft);color:var(--green)}.head-icon.purple{background:var(--purple-soft);color:var(--purple)}
+.card-title{margin:0;font-size:21px;font-weight:800;color:#142d49}.card-sub{margin:3px 0 0;color:var(--muted);font-size:14px}
+.form-grid{display:grid;grid-template-columns:125px minmax(180px,1fr) 145px minmax(190px,1fr);gap:14px 16px;align-items:center}.label{font-size:14px;color:#23415f}.field,select,input{width:100%;height:42px;border:1px solid #cdd9e4;border-radius:7px;background:var(--field);color:#1c3651;padding:8px 12px;outline:none;transition:.15s ease}.field:focus,select:focus,input:focus{border-color:#4f9ddb;box-shadow:0 0 0 3px rgba(79,157,219,.13)}.readonly{background:#f5f7f9;color:#42566a}
+.primary-save{margin-top:24px;min-width:330px;background:linear-gradient(135deg,#0aa35f,#078a50)!important;color:#fff!important;border-color:#078a50!important;height:48px!important;font-size:15px!important;box-shadow:0 7px 18px rgba(10,163,95,.17)}.whatsapp-share{margin-top:10px;min-width:330px;background:#25D366!important;color:#fff!important;border-color:#1fb958!important;height:46px!important;font-size:14px!important;box-shadow:0 7px 18px rgba(37,211,102,.16)}.whatsapp-share:hover{background:#20c35e!important}
+.button{height:42px;border:1px solid #67b8f0;border-radius:7px;background:#eef8ff;color:#0c66b2;font-weight:750;padding:8px 14px;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease,background .12s ease;white-space:nowrap}.button:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(33,95,148,.12)}.button:active{transform:translateY(0)}.button.green{border-color:#53bf88;background:#eefaf4;color:#087d49}.button.purple{border-color:#9a76ee;background:#f5f0ff;color:#5b2dc4}.button.amber{border-color:#e5a630;background:var(--amber-soft);color:#a46700}.button.danger{background:linear-gradient(135deg,#ee4646,#d92f2f);border-color:#c72828;color:#fff}.button.danger:hover{background:linear-gradient(135deg,#e53b3b,#c82020)}
+.calc{border:1px solid #cde3d9;border-radius:9px;overflow:hidden;background:#fff}.calc table{width:100%;border-collapse:collapse}.calc th{background:#e8f6ef;padding:11px 14px;text-align:left;font-size:13px;color:#173b2d}.calc td{padding:11px 14px;border-top:1px solid #e0e9ef;font-size:14px}.calc td:last-child{text-align:center;font-variant-numeric:tabular-nums}
+.profile-block{margin-top:18px;padding-top:0}.mini-head{display:flex;align-items:center;gap:12px;margin:14px 0 12px}.mini-icon{width:44px;height:44px;border-radius:50%;background:var(--blue-soft);display:grid;place-items:center;font-size:22px}.mini-head h3{margin:0;font-size:18px}.mini-head p{margin:2px 0 0;color:var(--muted);font-size:13px}.profile-buttons{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:12px}
+.exports{margin-top:18px}.exports-grid{display:grid;grid-template-columns:1fr 1.08fr 1.12fr;gap:0}.export-col{padding:2px 28px 4px}.export-col:first-child{padding-left:4px}.export-col:last-child{padding-right:4px}.export-col+.export-col{border-left:1px solid #dce7f0}.export-col-head{display:flex;align-items:center;gap:12px;margin:2px 0 14px}.export-col-icon{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--blue-soft);font-size:22px}.export-col h3{font-size:15px;margin:0}.export-col p{font-size:12px;color:var(--muted);margin:3px 0 0}.export-actions{display:flex;gap:12px;flex-wrap:wrap}.export-actions .button{flex:1 1 170px}.wide-danger{margin-top:12px;min-width:290px}
+.statusbar{display:flex;justify-content:space-between;align-items:center;gap:16px;color:#57708a;font-size:13px;padding:18px 6px 0}.status-left{display:flex;align-items:center;gap:10px;min-width:0}.status-left span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.status-right{white-space:nowrap;color:#49627a}
+.history{display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px}.history table{width:100%;border-collapse:collapse;font-size:13px}.history th,.history td{border:1px solid var(--border);padding:7px;text-align:left}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(15,36,56,.46);z-index:1000;align-items:center;justify-content:center;padding:14px}.modal{width:min(520px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:12px;padding:20px;box-shadow:0 22px 60px rgba(0,0,0,.25)}.modal h3{margin:0 0 14px}.modal label{display:block;margin:10px 0 5px;font-size:13px;font-weight:700}.modal-list{width:100%;min-height:250px}.actions{display:flex;gap:10px;flex-wrap:wrap}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#17324d;color:#fff;padding:11px 16px;border-radius:8px;z-index:2000;display:none;max-width:min(680px,92vw);white-space:pre-line;box-shadow:0 12px 28px rgba(0,0,0,.2)}.hidden{display:none!important}
+@media(max-width:1150px){.app{padding:16px}.dashboard{grid-template-columns:1fr}.form-grid{grid-template-columns:130px 1fr 145px 1fr}.exports-grid{grid-template-columns:1fr}.export-col{padding:18px 4px}.export-col+.export-col{border-left:0;border-top:1px solid #dce7f0}.topbar{padding:18px 20px}.brand h1{font-size:27px}}
+@media(max-width:760px){.topbar{align-items:flex-start}.top-meta{display:none}.brand-icon{width:48px;height:48px}.brand h1{font-size:23px}.brand p{font-size:13px}.card{padding:18px 16px}.form-grid{grid-template-columns:1fr;gap:7px}.label{margin-top:7px}.form-grid .spacer{display:none}.primary-save{width:100%;min-width:0}.profile-buttons{grid-template-columns:1fr}.exports-grid{display:block}.export-actions{display:grid;grid-template-columns:1fr}.export-actions .button{width:100%;flex:auto}.wide-danger{width:100%;min-width:0}.statusbar{display:block}.status-right{margin-top:8px}.dashboard{gap:14px}}
+
+
+/* ===== ADMIN / LICENȚĂ ===== */
+.license-warning{
+  display:none;
+  margin:0 auto 18px;
+  max-width:1540px;
+  background:linear-gradient(135deg,#ee4646,#c82020);
+  color:#fff;
+  border-radius:12px;
+  padding:14px 18px;
+  text-align:center;
+  font-weight:800;
+  box-shadow:var(--shadow);
+}
+.license-warning.show{display:block}
+.admin-license{
+  max-width:1540px;
+  margin:16px auto 0;
+  padding:0 28px 28px;
+}
+.admin-access{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  max-width:520px;
+}
+.admin-access input{flex:1}
+.admin-panel{
+  display:none;
+  margin-top:12px;
+  background:#17324d;
+  color:#fff;
+  border-radius:12px;
+  padding:16px;
+  box-shadow:var(--shadow);
+}
+.admin-panel.show{display:block}
+.admin-panel h3{margin:0 0 12px;color:#ffd54a}
+.admin-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.admin-controls input{width:170px}
+.admin-btn{
+  height:42px;
+  border:0;
+  border-radius:7px;
+  padding:8px 14px;
+  cursor:pointer;
+  font-weight:800;
+  background:#ffd54a;
+  color:#17324d;
+}
+.admin-btn.gray{background:#8b98a5;color:#fff}
+.admin-btn.red{background:#e43d3d;color:#fff}
+.license-info{
+  margin-top:12px;
+  background:#fff;
+  color:#17324d;
+  border-radius:8px;
+  padding:10px 12px;
+  line-height:1.55;
+  font-size:13px;
+}
+.license-locked .app{
+  opacity:.55;
+  filter:grayscale(.15);
+}
+@media(max-width:760px){
+  .admin-license{padding:0 16px 20px}
+  .admin-access{display:grid;grid-template-columns:1fr}
+  .admin-controls{display:grid;grid-template-columns:1fr}
+  .admin-controls input,.admin-btn{width:100%}
+}
+
+</style>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Manager Carburant">
+
+</head>
+<body>
+
+<div id="licenseWarning" class="license-warning">
+  ⛔ LICENȚA A EXPIRAT. Aplicația este blocată. Este necesară prelungirea licenței de către administrator.
+</div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">⛽</div>
+      <div><h1>MANAGER CARBURANT</h1><p>Evidență alimentări · Flotă auto · Rapoarte · Exporturi</p></div>
+    </div>
+    <div class="top-meta">
+      <div class="date-chip" id="headerDate">04 Septembrie 2026</div>
+      <div class="version">v3.22<small>MOBILE</small></div>
+    </div>
+  </header>
+
+  <div class="dashboard">
+    <section class="card">
+      <div class="card-head">
+        <div class="head-icon">⛽</div>
+        <div><h2 class="card-title">ALIMENTARE</h2><p class="card-sub">Introduceți datele alimentării</p></div>
+      </div>
+      <div class="form-grid">
+        <div class="label">Data</div><input id="data" type="date">
+        <div class="label">Vehicul</div><select id="vehicul"></select>
+        <div class="label">Nr. înmatriculare</div><input id="nr" class="readonly" readonly>
+        <div class="label">Șofer</div><input id="sofer" class="readonly" readonly>
+        <div class="label">Carburant</div><select id="carburant"><option>MOTORINA</option><option>BENZINA</option><option>GPL</option></select>
+        <div class="label">Traseu / Rută</div><input id="traseu">
+        <div class="label">Metoda calcul</div><input class="readonly" value="L/100km" readonly>
+        <div class="spacer"></div><div class="spacer"></div>
+        <div class="label">Km/zi</div><input id="km" inputmode="decimal">
+        <div class="label">Consum (L/100km)</div><input id="consum" inputmode="decimal">
+        <div class="label">Cantitate (l)</div><input id="cant" inputmode="decimal">
+        <div class="label">Preț (lei/l)</div><input id="pret" inputmode="decimal">
+      </div>
+      <button id="saveFuel" class="button primary-save">▣ &nbsp; SALVEAZĂ ALIMENTAREA</button>
+      <button id="shareWhatsApp" class="button whatsapp-share">TRIMITE</button>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div class="head-icon green">▦</div>
+        <div><h2 class="card-title">CALCUL AUTOMAT</h2><p class="card-sub">Rezultate calculate în timp real</p></div>
+      </div>
+      <div class="calc"><table><thead><tr><th>INDICATOR</th><th>VALOARE</th></tr></thead><tbody>
+        <tr><td>Cantitate introdusă</td><td id="c_cant">0,00 l</td></tr>
+        <tr><td>Preț carburant</td><td id="c_pret">0,00 lei/l</td></tr>
+        <tr><td>Total</td><td id="c_total">0,00 lei</td></tr>
+        <tr><td>Necesar zilnic</td><td id="c_necesar">0,00 l/zi</td></tr>
+        <tr><td>Cost zilnic</td><td id="c_cost">0,00 lei/zi</td></tr>
+        <tr><td>Zile până la reumplere</td><td id="c_zile">—</td></tr>
+        <tr><td>Data estimată reumplere</td><td id="c_refill">—</td></tr>
+      </tbody></table></div>
+      <div class="profile-block">
+        <div class="mini-head"><div class="mini-icon">🚙</div><div><h3>PROFIL VEHICUL</h3><p>Gestionează datele vehiculului selectat</p></div></div>
+        <div class="profile-buttons">
+          <button id="saveProfile" class="button">✎ &nbsp; Salvează profil vehicul</button>
+          <button id="addVehicle" class="button green">＋ &nbsp; Adaugă vehicul</button>
+          <button id="deleteVehicle" class="button danger">▣ &nbsp; Șterge vehicul</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card exports">
+    <div class="card-head">
+      <div class="head-icon purple">↥</div>
+      <div><h2 class="card-title">EXPORTURI ȘI FIȘIERE</h2><p class="card-sub">Generează rapoarte și gestionează fișierele</p></div>
+    </div>
+    <div class="exports-grid">
+      <div class="export-col">
+        <div class="export-col-head"><div class="export-col-icon">▤</div><div><h3>Vehicul selectat</h3><p>Rapoarte individuale</p></div></div>
+        <div class="export-actions">
+          <button id="routeSheet" class="button">FOAIE DE PARCURS</button>
+          <button id="generalExcel" class="button green">ALIMENTARI MASINI</button>
+        </div>
+      </div>
+      <div class="export-col">
+        <div class="export-col-head"><div class="export-col-icon">▦</div><div><h3>Centralizat / fișiere</h3><p>Rapoarte complete</p></div></div>
+        <div class="export-actions">
+          <button id="centralPdf" class="button">FACTURA</button>
+          
+        </div>
+        <button id="clearAll" class="button danger wide-danger">▣ &nbsp; ȘTERGE TOATE ALIMENTĂRILE</button>
+      </div>
+      <div class="export-col">
+        <div class="export-col-head"><div class="export-col-icon">⟳</div><div><h3>Export date</h3><p>Registru central</p></div></div>
+        <div class="export-actions">
+          
+          <button id="exportCentralBtn" class="button green">CENTRALIZATOR</button>
+          
+        </div>
+      </div>
+    </div>
+</section>
+
+  <footer class="statusbar">
+    <div class="status-left">▰ <span id="status">Date locale: browser / telefon</span></div>
+    <div class="status-right">⚙ &nbsp; FUEL MANAGER UI &nbsp; v3.22 &nbsp; | &nbsp; 2026</div>
+  </footer>
+</div>
+
+
+<section class="admin-license">
+  <div class="admin-access">
+    <input type="password" id="secretKey" placeholder="Cheie administrator" autocomplete="off">
+    <button id="unlockAdminBtn" class="button">🔓 Acces Administrator</button>
+  </div>
+
+  <div id="adminPanel" class="admin-panel">
+    <h3>🔐 PANOU ADMINISTRATOR · LICENȚĂ</h3>
+    <div class="admin-controls">
+      <input type="number" id="daysToAdd" min="1" step="1" value="30" placeholder="Zile de adăugat">
+      <button id="addDaysBtn" class="admin-btn">➕ Adaugă zile</button>
+      <button id="setUnlimitedBtn" class="admin-btn">♾️ Setează Nelimitat</button>
+      <button id="resetLicenseBtn" class="admin-btn red">🔄 Reset 30 zile</button>
+      <button id="closeAdminBtn" class="admin-btn gray">❌ Închide Admin</button>
+    </div>
+    <div id="licenseInfo" class="license-info"></div>
+  </div>
+</section>
+
+<div id="vehicleModal" class="modal-backdrop"><div class="modal"><h3>Adaugă vehicul</h3>
+  <label>Denumire vehicul</label><input id="newName">
+  <label>Nr. înmatriculare</label><input id="newReg">
+  <label>Șofer / responsabil</label><input id="newDriver">
+  <div class="actions" style="margin-top:14px"><button id="vehicleSave" class="button green">Salvează</button><button data-close="vehicleModal" class="button">Închide</button></div>
+</div></div>
+
+<div id="routeModal" class="modal-backdrop"><div class="modal"><h3>FOAIE DE PARCURS, SELECTEAZĂ VEHICULUL</h3>
+  <select id="routeVehicle" class="modal-list" size="10"></select><div id="routeCount" style="margin:8px 0"></div>
+  <div class="actions"><button id="routeGenerate" class="button green">GENEREAZĂ PDF / WHATSAPP</button><button data-close="routeModal" class="button">Închide</button></div>
+</div></div>
+<div id="toast" class="toast"></div>
+
+<script src="native-share.bundle.js"></script>
+<script>
+'use strict';
+const BUILD='2026-09-14-CLEAN-v7';
+const STORAGE_KEY='CGA_FUEL_MANAGER_HTML_V1';
+
+const LICENSE_STORAGE_KEY='CGA_FUEL_MANAGER_LICENSE_V1';
+const MASTER_SECRET='negrila';
+const LICENSE_DAY_MS=24*60*60*1000;
+
+function loadLicense(){
+  try{
+    const raw=localStorage.getItem(LICENSE_STORAGE_KEY);
+    if(raw){
+      const parsed=JSON.parse(raw);
+      if(parsed&&typeof parsed==='object')return parsed;
+    }
+  }catch(e){}
+  const initial={
+    activated:true,
+    expiresAt:Date.now()+(30*LICENSE_DAY_MS),
+    unlimited:false,
+    firstUse:Date.now()
+  };
+  localStorage.setItem(LICENSE_STORAGE_KEY,JSON.stringify(initial));
+  return initial;
+}
+
+let license=loadLicense();
+
+function saveLicense(){
+  localStorage.setItem(LICENSE_STORAGE_KEY,JSON.stringify(license));
+}
+
+function isLicenseValid(){
+  if(license.unlimited)return true;
+  if(!license.expiresAt)return false;
+  return Date.now()<Number(license.expiresAt);
+}
+
+function getDaysRemaining(){
+  if(license.unlimited)return 'Nelimitat ♾️';
+  if(!license.expiresAt)return 0;
+  const remaining=Math.ceil((Number(license.expiresAt)-Date.now())/LICENSE_DAY_MS);
+  return remaining>0?remaining:0;
+}
+
+function getExpiryDate(){
+  if(license.unlimited)return 'Nelimitat ♾️';
+  if(!license.expiresAt)return 'Nesetată';
+  return new Date(Number(license.expiresAt)).toLocaleDateString('ro-RO');
+}
+
+function updateLicenseInfo(){
+  const info=$('licenseInfo');
+  if(!info)return;
+  const valid=isLicenseValid();
+  info.innerHTML=
+    `<strong>STATUS:</strong> ${valid?'✅ ACTIVĂ':'❌ EXPIRATĂ'}<br>`+
+    `<strong>Zile rămase:</strong> ${getDaysRemaining()}<br>`+
+    `<strong>Data activare:</strong> ${new Date(Number(license.firstUse)||Date.now()).toLocaleDateString('ro-RO')}<br>`+
+    `<strong>Mod nelimitat:</strong> ${license.unlimited?'DA':'NU'}<br>`+
+    `<strong>Data expirării:</strong> ${getExpiryDate()}`;
+}
+
+function checkLicenseAndDisable(){
+  const valid=isLicenseValid();
+  const warning=$('licenseWarning');
+  if(warning)warning.classList.toggle('show',!valid);
+  document.body.classList.toggle('license-locked',!valid);
+
+  document.querySelectorAll('.app button,.app input,.app select').forEach(el=>{
+    el.disabled=!valid;
+  });
+
+  updateLicenseInfo();
+  return valid;
+}
+
+function addDays(days){
+  days=Number(days);
+  if(!Number.isFinite(days)||days<=0){
+    alert('Introduce un număr valid de zile.');
+    return;
+  }
+  if(license.unlimited){
+    alert('Licența este deja nelimitată.');
+    return;
+  }
+  const base=Number(license.expiresAt)>Date.now()?Number(license.expiresAt):Date.now();
+  license.expiresAt=base+(Math.floor(days)*LICENSE_DAY_MS);
+  license.activated=true;
+  saveLicense();
+  checkLicenseAndDisable();
+  alert(`S-au adăugat ${Math.floor(days)} zile.\nNoua expirare: ${getExpiryDate()}`);
+}
+
+function setUnlimited(){
+  license.unlimited=true;
+  license.expiresAt=null;
+  license.activated=true;
+  saveLicense();
+  checkLicenseAndDisable();
+  alert('Licența a fost setată ca NELIMITATĂ.');
+}
+
+function resetLicense(){
+  if(!confirm('Resetezi licența la 30 zile de acum?\nDatele aplicației NU vor fi afectate.'))return;
+  license={
+    activated:true,
+    expiresAt:Date.now()+(30*LICENSE_DAY_MS),
+    unlimited:false,
+    firstUse:Date.now()
+  };
+  saveLicense();
+  checkLicenseAndDisable();
+  alert('Licența a fost resetată la 30 zile.');
+}
+
+function checkAdminAccess(){
+  const input=$('secretKey');
+  if(!input)return;
+  if(input.value===MASTER_SECRET){
+    $('adminPanel').classList.add('show');
+    input.value='';
+    updateLicenseInfo();
+    alert('Acces administrator confirmat.');
+  }else{
+    alert('Cheie administrator invalidă.');
+    input.select();
+  }
+}
+
+function initLicenseAdmin(){
+  $('unlockAdminBtn').onclick=checkAdminAccess;
+  $('secretKey').addEventListener('keydown',e=>{if(e.key==='Enter')checkAdminAccess();});
+  $('addDaysBtn').onclick=()=>addDays($('daysToAdd').value);
+  $('setUnlimitedBtn').onclick=setUnlimited;
+  $('resetLicenseBtn').onclick=resetLicense;
+  $('closeAdminBtn').onclick=()=>$('adminPanel').classList.remove('show');
+  checkLicenseAndDisable();
+}
+
+const FATA_B64='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';
+const VERSO_B64='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';
+const ALIMENTARI_HEADER=["ID","Data","Vehicul","Operatiune","U/M","Cantitate_l","Pret_lei_l","Total_lei","Km_zi","Consum_spec_L_100km","Metoda_calc","Traseu","Decada","Luna","An","Observatii","Necesar_zi_l","Zile_pana_refill","Data_estimata_refill","Vehicul_ID","Nr_inmatriculare","Sofer"];
+const PARC_AUTO_HEADER=["ID","Vehicul","Nr_inmatriculare","Sofer","Carburant","Consum_standard_L_100km","Traseu","Km_zi","Observatii"];
+const FLOTA_INITIALA=[
+ {ID:1,Vehicul:'MERCEDES BENZ',Nr_inmatriculare:'IS.07.CGA',Sofer:'IONUT',Carburant:'',Consum_standard_L_100km:'',Traseu:'',Km_zi:'',Observatii:''},
+ {ID:2,Vehicul:'SCODA KODIAQ',Nr_inmatriculare:'B.19.YLC',Sofer:'CLAUDIU',Carburant:'',Consum_standard_L_100km:'',Traseu:'',Km_zi:'',Observatii:''},
+ {ID:3,Vehicul:'HONDA CRV',Nr_inmatriculare:'B.107.FZC',Sofer:'GHEORGHITA',Carburant:'',Consum_standard_L_100km:'',Traseu:'',Km_zi:'',Observatii:''},
+ {ID:4,Vehicul:'SCODA YETI',Nr_inmatriculare:'IS.87.YLC',Sofer:'ANA',Carburant:'',Consum_standard_L_100km:'',Traseu:'',Km_zi:'',Observatii:''},
+ {ID:5,Vehicul:'DACIA LOGAN',Nr_inmatriculare:'IS-06-VSA',Sofer:'CIOBANU COSMIN',Carburant:'',Consum_standard_L_100km:'',Traseu:'',Km_zi:'',Observatii:''},
+ {ID:6,Vehicul:'PEGUET BOXER',Nr_inmatriculare:'IS-63-BRO',Sofer:'IONUT',Carburant:'',Consum_standard_L_100km:'',Traseu:'',Km_zi:'',Observatii:''},
+ {ID:7,Vehicul:'WOLSKWAGEN TURAN',Nr_inmatriculare:'IS-32 CGA',Sofer:'',Carburant:'',Consum_standard_L_100km:'',Traseu:'',Km_zi:'',Observatii:''},
+ {ID:8,Vehicul:'RENAULT',Nr_inmatriculare:'IS-18-JIU',Sofer:'SERBAN GHE',Carburant:'',Consum_standard_L_100km:'',Traseu:'',Km_zi:'',Observatii:''},
+ {ID:9,Vehicul:'OPEL COMBO',Nr_inmatriculare:'IS-46-MVM',Sofer:'VIOREL',Carburant:'',Consum_standard_L_100km:'',Traseu:'',Km_zi:'',Observatii:''},
+ {ID:10,Vehicul:'WOLSKWAGEN CANDY',Nr_inmatriculare:'IS-16-CGA',Sofer:'TUCA VALENTIN',Carburant:'',Consum_standard_L_100km:'',Traseu:'',Km_zi:'',Observatii:''}
+];
+let state=loadState();
+const $=id=>document.getElementById(id);
+function clone(v){return JSON.parse(JSON.stringify(v));}
+function initialState(){return {version:BUILD,parcAuto:clone(FLOTA_INITIALA),alimentari:[],deleted:[],history:[],legacyRepaired:false,resetDone:true};}
+function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY); if(raw){const s=JSON.parse(raw); if(s&&Array.isArray(s.parcAuto)&&Array.isArray(s.alimentari)){s.deleted=s.deleted||[];s.history=s.history||[];return s;}}}catch(e){} return initialState();}
+function saveState(){state.version=BUILD;localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+function legacyRepair(){
+  if(state.legacyRepaired)return;
+  // Versiunile vechi eliminau automat MERCEDES BENZ la prima pornire.
+  // Audit v4: nu ștergem niciun vehicul fără acțiunea explicită a utilizatorului.
+  state.legacyRepaired=true;
+  saveState();
+}
+function parseFloatRo(x){if(x==null)return 0;let s=String(x);['lei','Lei','LEI','l/100km','L/100km',' l',' L','%',' km','km'].forEach(t=>s=s.split(t).join(''));s=s.replace(/\s/g,'').replace(',','.');const m=s.match(/-?\d+(?:\.\d+)?/);return m?Number(m[0]):0;}
+function isoToday(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function parseDateStrict(v){if(v instanceof Date&&!isNaN(v))return new Date(v.getFullYear(),v.getMonth(),v.getDate());const s=String(v||'').trim();if(!s)return new Date();let m;if((m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)))return validDate(+m[1],+m[2],+m[3],s);if((m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/))){let y=+m[3];if(y<100)y+=2000;return validDate(y,+m[2],+m[1],s);}const months={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};if((m=s.match(/^(\d{1,2})-([A-Za-z]{3})(?:-(\d{4}))?$/))){const mo=months[m[2].toLowerCase()];if(mo!=null)return validDate(m[3]?+m[3]:(new Date()).getFullYear(),mo+1,+m[1],s);}const d=new Date(s);if(!isNaN(d))return new Date(d.getFullYear(),d.getMonth(),d.getDate());throw new Error(`Data '${s}' nu este validă.`);}
+function validDate(y,m,d,raw){const x=new Date(y,m-1,d);if(x.getFullYear()!==y||x.getMonth()!==m-1||x.getDate()!==d)throw new Error(`Data '${raw}' nu este validă.`);return x;}
+function fmtIso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function fmtDot(d){return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;}
+function fmtPyDate(d){const ms=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${String(d.getDate()).padStart(2,'0')}-${ms[d.getMonth()]}-${d.getFullYear()}`;}
+function lastDay(d){return new Date(d.getFullYear(),d.getMonth()+1,0).getDate();}
+function decadaLabel(d){return d.getDate()<=15?`1–15 ${d.toLocaleString('en',{month:'long'})}`:`16–${lastDay(d)} ${d.toLocaleString('en',{month:'long'})}`;}
+function calcNecesar(km,cons){return km>0&&cons>0?Math.round(km*cons/100*10000)/10000:0;}
+function calcRefill(cant,necesar,start){if(cant<=0||necesar<=0)return [0,null];const zile=Math.floor(cant/necesar);const d=new Date(start);if(zile>0)d.setDate(d.getDate()+zile);return [zile,d];}
+function fmtNr(x,suf=''){const s=Number(x||0).toLocaleString('ro-RO',{minimumFractionDigits:2,maximumFractionDigits:2});return `${s}${suf?' '+suf:''}`;}
+function safeFilename(v){return String(v||'export').trim().replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,'_').slice(0,80)||'export';}
+function currentVehicle(){const id=Number($('vehicul').value);return state.parcAuto.find(v=>Number(v.ID)===id)||null;}
+function fuelingsForVehicle(v,ref=null){let rows=state.alimentari.filter(r=>(String(r.Nr_inmatriculare||'')&&String(r.Nr_inmatriculare).toLowerCase()===String(v.Nr_inmatriculare||'').toLowerCase())||String(r.Vehicul_ID||'')===String(v.ID)||String(r.Vehicul||'').toLowerCase()===String(v.Vehicul||'').toLowerCase());if(ref)rows=rows.filter(r=>{const d=parseDateStrict(r.Data);return d.getFullYear()===ref.getFullYear()&&d.getMonth()===ref.getMonth();});return rows.sort((a,b)=>parseDateStrict(a.Data)-parseDateStrict(b.Data));}
+function hydrateVehicles(){const sel=$('vehicul');const old=sel.value;sel.innerHTML='';state.parcAuto.forEach(v=>{const o=document.createElement('option');o.value=v.ID;o.textContent=v.Vehicul;sel.appendChild(o)});if(state.parcAuto.some(v=>String(v.ID)===String(old)))sel.value=old;else if(state.parcAuto[0])sel.value=state.parcAuto[0].ID;hydrateRouteVehicles();onVehicleSelected();}
+function hydrateRouteVehicles(){const s=$('routeVehicle');if(!s)return;s.innerHTML='';state.parcAuto.forEach(v=>{const o=document.createElement('option');o.value=v.ID;o.textContent=v.Vehicul;s.appendChild(o)});$('routeCount').textContent=`Vehicule disponibile: ${state.parcAuto.length}`;}
+function onVehicleSelected(){const v=currentVehicle();$('nr').value=v?.Nr_inmatriculare||'';$('sofer').value=v?.Sofer||'';$('carburant').value=['MOTORINA','BENZINA','GPL'].includes(String(v?.Carburant||'').toUpperCase())?String(v.Carburant).toUpperCase():'MOTORINA';$('traseu').value=v?.Traseu||'';$('consum').value=v?.Consum_standard_L_100km??'';$('km').value=v?.Km_zi??'';recalc();}
+function recalc(){let d;try{d=parseDateStrict($('data').value)}catch(e){d=new Date()}const km=parseFloatRo($('km').value),cons=parseFloatRo($('consum').value),pret=parseFloatRo($('pret').value),cant=parseFloatRo($('cant').value);const necesar=calcNecesar(km,cons),cost=Math.round(necesar*pret*100)/100,total=Math.round(cant*pret*100)/100;const [zile,ref]=calcRefill(cant,necesar,d);$('c_cant').textContent=fmtNr(cant,'l');$('c_pret').textContent=pret>0?fmtNr(pret,'lei/l'):'0,00 lei/l';$('c_total').textContent=fmtNr(total,'lei');$('c_necesar').textContent=fmtNr(necesar,'l/zi');$('c_cost').textContent=fmtNr(cost,'lei/zi');$('c_zile').textContent=zile>0?`${zile} zile`:'—';$('c_refill').textContent=ref?fmtPyDate(ref):'—';}
+function toast(msg,ms=2600){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._timer);t._timer=setTimeout(()=>t.style.display='none',ms);}
+function setStatus(msg){$('status').textContent=msg;}
+function confirmOrThrow(msg){return window.confirm(msg);}
+function saveProfile(){const v=currentVehicle();if(!v)return toast('Selectează un vehicul.');v.Carburant=$('carburant').value;const c=parseFloatRo($('consum').value),k=parseFloatRo($('km').value);v.Consum_standard_L_100km=c>0?c:'';v.Traseu=$('traseu').value.trim();v.Km_zi=k>0?k:'';saveState();toast(`Date vehicul salvate\nVehicul: ${v.Vehicul}`);}
+function saveFuel(){try{const v=currentVehicle();if(!v)throw new Error('Selectează un vehicul.');const pret=parseFloatRo($('pret').value),cant=parseFloatRo($('cant').value),km=parseFloatRo($('km').value),cons=parseFloatRo($('consum').value);if(pret<=0)throw new Error('Completează prețul carburantului cu o valoare mai mare decât 0.');if(cant<=0)throw new Error('Completează cantitatea alimentată în litri.');if(km<=0||cons<=0)throw new Error('Completează Km/zi și Consum L/100km cu valori mai mari decât 0.');const d=parseDateStrict($('data').value);const necesar=calcNecesar(km,cons),total=Math.round(cant*pret*100)/100,[zile,refill]=calcRefill(cant,necesar,d);const nextId=state.alimentari.reduce((m,r)=>Math.max(m,Number(r.ID)||0),0)+1;state.alimentari.push({ID:nextId,Data:fmtPyDate(d),Vehicul:v.Vehicul,Operatiune:$('carburant').value||'MOTORINA','U/M':'l',Cantitate_l:Math.round(cant*100)/100,Pret_lei_l:Math.round(pret*100)/100,Total_lei:total,Km_zi:km,Consum_spec_L_100km:cons,Metoda_calc:'L/100km',Traseu:$('traseu').value.trim(),Decada:decadaLabel(d),Luna:d.toLocaleString('en',{month:'long'}),An:d.getFullYear(),Observatii:'',Necesar_zi_l:Math.round(necesar*100)/100,Zile_pana_refill:zile>0?zile:0,Data_estimata_refill:refill?fmtPyDate(refill):'',Vehicul_ID:v.ID,Nr_inmatriculare:v.Nr_inmatriculare||'',Sofer:v.Sofer||''});saveState();toast(`Înregistrarea a fost salvată.\nCantitate: ${fmtNr(cant,'l')}\nTotal: ${fmtNr(total,'lei')}\nNecesar zilnic: ${fmtNr(necesar,'l/zi')}\nReumplere în: ${zile} zile\nData estimată: ${refill?fmtPyDate(refill):'—'}`,5000);$('pret').value='';$('cant').value='';$('data').value=isoToday();onVehicleSelected();$('cant').focus();}catch(e){toast(e.message,4500);}}
+function addVehicle(){const name=$('newName').value.trim(),reg=$('newReg').value.trim(),drv=$('newDriver').value.trim();if(!name)return toast('Introduce un nume de vehicul.');if(reg&&state.parcAuto.some(v=>String(v.Nr_inmatriculare||'').trim().toUpperCase()===reg.toUpperCase()))return toast('Numărul de înmatriculare există deja.');if(!reg&&state.parcAuto.some(v=>String(v.Vehicul||'').trim().toLowerCase()===name.toLowerCase()))return toast('Vehiculul există deja.');const newId=state.parcAuto.reduce((m,v)=>Math.max(m,Number(v.ID)||0),0)+1;state.deleted=state.deleted.filter(x=>!(String(x.Vehicul||'').toLowerCase()===name.toLowerCase()||(reg&&String(x.Nr_inmatriculare||'').toLowerCase()===reg.toLowerCase())));state.parcAuto.push({ID:newId,Vehicul:name,Nr_inmatriculare:reg,Sofer:drv,Carburant:'',Consum_standard_L_100km:'',Traseu:'',Km_zi:'',Observatii:''});saveState();closeModal('vehicleModal');hydrateVehicles();$('vehicul').value=newId;onVehicleSelected();toast('Vehicul adăugat.');}
+function deleteVehicle(){const v=currentVehicle();if(!v)return toast('Selectează un vehicul.');if(!confirmOrThrow(`Sigur vrei să ștergi mașina selectată din listă?\n\n${v.Vehicul}\n\nIstoricul alimentărilor deja înregistrate NU va fi șters.`))return;state.deleted.push({Vehicul:v.Vehicul,Nr_inmatriculare:v.Nr_inmatriculare||'',Sters_la:new Date().toISOString()});state.parcAuto=state.parcAuto.filter(x=>Number(x.ID)!==Number(v.ID));saveState();hydrateVehicles();toast(`Vehiculul a fost eliminat din listă:\n${v.Vehicul}`);}
+function openModal(id){$(id).style.display='flex';}
+function closeModal(id){$(id).style.display='none';}
+function requireLib(name,obj){if(!obj)throw new Error(`${name} nu s-a încărcat. Verifică conexiunea la internet la prima deschidere a fișierului.`);return obj;}
+function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);setStatus(`Export: ${name}`);}
+async function shareOrDownload(blob,name,text=''){
+  const lower=String(name||'').toLowerCase();
+  let mime=blob?.type||'application/octet-stream';
+  if(lower.endsWith('.pdf'))mime='application/pdf';
+  else if(lower.endsWith('.xlsx'))mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  else if(lower.endsWith('.zip'))mime='application/zip';
+  else if(lower.endsWith('.png'))mime='image/png';
+  else if(lower.endsWith('.jpg')||lower.endsWith('.jpeg'))mime='image/jpeg';
+
+  const file=blob instanceof File && blob.name===name && blob.type===mime
+    ? blob
+    : new File([blob],name,{type:mime});
+
+  try{
+    if(window.NativeWhatsAppShare && window.NativeWhatsAppShare.isNative()){
+      await window.NativeWhatsAppShare.shareFiles(
+        [file],
+        name,
+        text||'Document generat din Manager Carburant'
+      );
+      setStatus(`Trimis către WhatsApp: ${name}`);
+      return true;
+    }
+
+    if(navigator.share){
+      const payload={title:name,text:text||'Document generat din Manager Carburant',files:[file]};
+      if(!navigator.canShare || navigator.canShare({files:[file]})){
+        await navigator.share(payload);
+        setStatus(`Partajat: ${name}`);
+        return true;
+      }
+    }
+  }catch(e){
+    if(e && e.name==='AbortError')return false;
+    console.warn('Partajare nereușită:',e);
+    throw e;
+  }
+
+  downloadBlob(file,name);
+  toast('Partajarea nativă nu este disponibilă în browser. În APK fișierul se trimite direct către WhatsApp.',6500);
+  return false;
+}
+
+async function shareImageOrDownload(file,name,text=''){
+  return shareOrDownload(file,name,text||'Alimentare carburant');
+}
+
+function fitImageOnPdf(doc,dataUrl,pageW,pageH,margin=4){
+  const props=doc.getImageProperties(dataUrl);
+  const maxW=pageW-margin*2,maxH=pageH-margin*2;
+  const scale=Math.min(maxW/props.width,maxH/props.height);
+  const w=props.width*scale,h=props.height*scale;
+  doc.addImage(dataUrl,'PNG',(pageW-w)/2,(pageH-h)/2,w,h,undefined,'FAST');
+}
+
+function monthPeriod(ref){return [new Date(ref.getFullYear(),ref.getMonth(),1),new Date(ref.getFullYear(),ref.getMonth()+1,0)];}
+function standardExportRows(rows){const park=new Map(state.parcAuto.map(v=>[String(v.Vehicul||'').toLowerCase(),v]));return rows.slice().sort((a,b)=>parseDateStrict(a.Data)-parseDateStrict(b.Data)||String(a.Vehicul||'').localeCompare(String(b.Vehicul||''))).map((r,i)=>{const v=park.get(String(r.Vehicul||'').toLowerCase())||{};return [i+1,fmtDot(parseDateStrict(r.Data)),r.Sofer||v.Sofer||'',r.Vehicul||'',r.Operatiune||'',String(r['U/M']||'L').toUpperCase(),parseFloatRo(r.Cantitate_l),parseFloatRo(r.Pret_lei_l),parseFloatRo(r.Total_lei),r.Nr_inmatriculare||v.Nr_inmatriculare||'',r.Traseu||v.Traseu||'',parseFloatRo(r.Consum_spec_L_100km)||parseFloatRo(v.Consum_standard_L_100km)||'',parseFloatRo(r.Km_zi)||parseFloatRo(v.Km_zi)||'',r.Observatii||''];});}
+async function makeStandardWorkbook(rows,title='EXPORT_GENERAL_EXCEL'){const Excel=requireLib('ExcelJS',window.ExcelJS);const wb=new Excel.Workbook();wb.creator='Manager Carburant HTML';wb.created=new Date();const ws=wb.addWorksheet('ALIMENTARI',{views:[{state:'frozen',ySplit:1,showGridLines:false}]});const headers=['NR.\nCRT','DATA','NUME\nPRENUME','MARCA\nMASINA','TIP\nCARBURANT','U/M','CANTITATE','PRET\n/LITRU','TOTAL\nLEI','NUMAR','TRASEU','CONSUM\nL/100KM','KM','Obs'];ws.addRow(headers);const head=ws.getRow(1);head.height=42;head.eachCell(c=>{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1F3E6D'}};c.font={color:{argb:'FFFFFFFF'},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.border=thinBorder();});const data=standardExportRows(rows);let totalL=0,totalLei=0;for(const vals of data){totalL+=Number(vals[6])||0;totalLei+=Number(vals[8])||0;const row=ws.addRow(vals);row.eachCell((c,col)=>{c.border=thinBorder();c.alignment={horizontal:[3,4,11,14].includes(col)?'left':'center',vertical:'middle',wrapText:true};});row.getCell(7).numFmt='0.00';row.getCell(8).numFmt='0.00 "lei"';row.getCell(9).numFmt='0.00 "lei"';row.getCell(12).numFmt='0.00';row.getCell(13).numFmt='0.00';}const totalRow=Math.max(3,data.length+3);ws.getCell(totalRow,6).value='TOTAL';ws.getCell(totalRow,6).font={bold:true};ws.getCell(totalRow,7).value=Math.round(totalL*100)/100;ws.getCell(totalRow,9).value=Math.round(totalLei*100)/100;for(let c=6;c<=9;c++){const cell=ws.getCell(totalRow,c);cell.border=thinBorder();cell.alignment={horizontal:'center',vertical:'middle'};}ws.getCell(totalRow,7).numFmt='0.00';ws.getCell(totalRow,9).numFmt='0.00 "lei"';ws.getCell(totalRow,7).font={bold:true};ws.getCell(totalRow,9).font={bold:true};[9,13,24,24,16,8,13,13,14,15,28,14,11,18].forEach((w,i)=>ws.getColumn(i+1).width=w);ws.autoFilter={from:'A1',to:`N${Math.max(2,data.length+1)}`};ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,printArea:`A1:N${totalRow}`,printTitlesRow:'1:1'};return wb;}
+function thinBorder(){const s={style:'thin',color:{argb:'FF000000'}};return {top:s,left:s,bottom:s,right:s};}
+async function exportGeneral(){
+  try{
+    const ref=parseDateStrict($('data').value);
+    if(!Array.isArray(state.parcAuto)||!state.parcAuto.length)throw new Error('Nu există vehicule în parc.');
+
+    const luna=String(ref.getMonth()+1).padStart(2,'0');
+    const perioada=`${ref.getFullYear()}-${luna}`;
+    const files=[];
+
+    for(const v of state.parcAuto){
+      const rows=fuelingsForVehicle(v,ref);
+      const wb=await makeStandardWorkbook(rows,`ALIMENTARI_${safeFilename(v.Vehicul)}_${perioada}`);
+      const buffer=await wb.xlsx.writeBuffer();
+      const name=`ALIMENTARI_${safeFilename(v.Vehicul)}_${perioada}.xlsx`;
+      files.push(new File(
+        [buffer],
+        name,
+        {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}
+      ));
+    }
+
+    const mesaj=`Alimentări mașini ${luna}.${ref.getFullYear()} - ${files.length} fișiere Excel`;
+
+    if(window.NativeWhatsAppShare && window.NativeWhatsAppShare.isNative()){
+      await window.NativeWhatsAppShare.shareFiles(
+        files,
+        `ALIMENTARI MASINI ${perioada}`,
+        mesaj
+      );
+      setStatus(`Trimis către WhatsApp: ${files.length} fișiere Excel`);
+      toast(`ALIMENTĂRI MAȘINI: ${files.length} fișiere Excel trimise către WhatsApp.`,5000);
+      return;
+    }
+
+    if(navigator.share && (!navigator.canShare || navigator.canShare({files}))){
+      await navigator.share({title:`ALIMENTARI MASINI ${perioada}`,text:mesaj,files});
+      return;
+    }
+
+    for(const file of files)downloadBlob(file,file.name);
+    toast('În browser fișierele au fost descărcate. În APK sunt trimise direct către WhatsApp.',6500);
+  }catch(e){
+    if(e && e.name==='AbortError')return;
+    toast(`Eroare export ALIMENTARI MASINI: ${e.message}`,6500);
+  }
+}
+async function exportCentralWorkbook(){
+  try{
+    const Excel=requireLib('ExcelJS',window.ExcelJS);
+    if(!state.alimentari.length)throw new Error('Nu există alimentări pentru export.');
+
+    const wb=new Excel.Workbook();
+    wb.creator='Manager Carburant HTML';
+    wb.created=new Date();
+
+    const ws=wb.addWorksheet('ALIMENTARI',{views:[{showGridLines:true}]});
+
+    const headers=[
+      'ID','Data','Vehicul','Nr\\ninmatriculare','Sofer','Traseu',
+      'Km\\n/ZI','Consum\\n/100km','Necesar\\n/ZI',
+      'Tip\\nCarburant','U/M','Cantitate.','Pret','Total'
+    ];
+    ws.addRow(headers);
+
+    const hr=ws.getRow(1);
+    hr.height=41;
+    hr.eachCell(cell=>{
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF173A5B'}};
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFFFFFFF'}};
+      cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+    });
+
+    const rows=state.alimentari.slice().sort((a,b)=>(Number(a.ID)||0)-(Number(b.ID)||0));
+
+    for(const r of rows){
+      let dataVal=r.Data||'';
+      try{dataVal=parseDateStrict(r.Data);}catch(e){}
+
+      const row=ws.addRow([
+        Number(r.ID)||'',
+        dataVal,
+        r.Vehicul||'',
+        r.Nr_inmatriculare||'',
+        r.Sofer||'',
+        r.Traseu||'',
+        parseFloatRo(r.Km_zi)||'',
+        parseFloatRo(r.Consum_spec_L_100km)||'',
+        parseFloatRo(r.Necesar_zi_l)||'',
+        String(r.Operatiune||r.Carburant||'').toUpperCase(),
+        String(r['U/M']||'L').toUpperCase(),
+        parseFloatRo(r.Cantitate_l)||'',
+        parseFloatRo(r.Pret_lei_l)||'',
+        parseFloatRo(r.Total_lei)||''
+      ]);
+
+      row.height=20;
+      row.eachCell((cell,col)=>{
+        cell.font={name:'Calibri',size:10,color:{argb:'FF000000'}};
+        cell.alignment={
+          horizontal:[3,4,5,6,10].includes(col)?'left':'center',
+          vertical:'middle'
+        };
+      });
+
+      row.getCell(2).numFmt='dd-mmm-yyyy';
+      row.getCell(7).numFmt='0.##';
+      row.getCell(8).numFmt='0.##';
+      row.getCell(9).numFmt='0.##';
+      row.getCell(12).numFmt='0.##';
+      row.getCell(13).numFmt='0.00 "lei"';
+      row.getCell(14).numFmt='0.00 "lei"';
+    }
+
+    [6,13,18,19,24,24,9,11,11,15,8,12,12,13].forEach((w,i)=>{
+      ws.getColumn(i+1).width=w;
+    });
+
+    ws.pageSetup={
+      orientation:'landscape',
+      fitToPage:true,
+      fitToWidth:1,
+      fitToHeight:0,
+      printArea:`A1:N${rows.length+1}`,
+      printTitlesRow:'1:1'
+    };
+
+    const buf=await wb.xlsx.writeBuffer();
+    const name='Carburant_Manager.xlsx';
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    await shareOrDownload(blob,name,'Registrul central de carburant');
+    toast('Registrul central Excel este pregătit pentru WhatsApp / partajare.');
+  }catch(e){
+    toast(`Eroare export Excel: ${e.message}`,6000);
+  }
+}
+function fuelSummary(ref){const [start,end]=monthPeriod(ref);const rows=state.alimentari.filter(r=>{const d=parseDateStrict(r.Data);return d>=start&&d<=end});const vehicles=state.parcAuto.map(v=>{const rr=rows.filter(r=>String(r.Vehicul_ID||'')===String(v.ID)||String(r.Nr_inmatriculare||'').toLowerCase()===String(v.Nr_inmatriculare||'').toLowerCase()||String(r.Vehicul||'').toLowerCase()===String(v.Vehicul||'').toLowerCase());const l=rr.reduce((s,r)=>s+parseFloatRo(r.Cantitate_l),0),lei=rr.reduce((s,r)=>s+parseFloatRo(r.Total_lei),0);const fuel=[...new Set(rr.map(r=>String(r.Operatiune||'').trim()).filter(Boolean))].join(', ')||v.Carburant||'';const kmzi=parseFloatRo(v.Km_zi);const kmLuna=kmzi>0?kmzi*workingDays(ref):0;return {Vehicul:v.Vehicul,Nr_inmatriculare:v.Nr_inmatriculare||'',Sofer:v.Sofer||'',Traseu:v.Traseu||'',Perioada_alimentari:`${fmtDot(start)} - ${fmtDot(end)}`,Carburant:fuel,Nr_alimentari:rr.length,Cantitate_l:l,Km_luna:kmLuna,Consum_L_100km:parseFloatRo(v.Consum_standard_L_100km),Total_lei:lei};});const fuels={};for(const r of rows){const f=String(r.Operatiune||'NEPRECIZAT').toUpperCase();if(!fuels[f])fuels[f]={Carburant:f,Nr_vehicule:new Set(),Nr_alimentari:0,Cantitate_l:0,Total_lei:0};const x=fuels[f];x.Nr_vehicule.add(String(r.Vehicul_ID||r.Vehicul));x.Nr_alimentari++;x.Cantitate_l+=parseFloatRo(r.Cantitate_l);x.Total_lei+=parseFloatRo(r.Total_lei);}return {vehicles,fuels:Object.values(fuels).map(x=>({...x,Nr_vehicule:x.Nr_vehicule.size})),rows,totalL:rows.reduce((s,r)=>s+parseFloatRo(r.Cantitate_l),0),totalLei:rows.reduce((s,r)=>s+parseFloatRo(r.Total_lei),0)};}
+function workingDays(ref){let n=0;for(let d=1;d<=lastDay(ref);d++){const x=new Date(ref.getFullYear(),ref.getMonth(),d);if(x.getDay()!==0)n++;}return n;}
+async function exportCentralPdf(){try{const jsPDF=requireLib('jsPDF',window.jspdf?.jsPDF);const ref=parseDateStrict($('data').value),sum=fuelSummary(ref);const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});doc.setFontSize(11);doc.text('Centralizator lunar carburanti',7,9);doc.setFontSize(15);doc.text(`Centralizare carburanti - ${String(ref.getMonth()+1).padStart(2,'0')}.${ref.getFullYear()}`,7,20);doc.setFontSize(8);doc.text(`Vehicule: ${sum.vehicles.length}   Sursa date: stocarea locală a aplicației HTML`,7,27);const body=sum.vehicles.map((x,i)=>[i+1,x.Vehicul,x.Nr_inmatriculare,x.Sofer,x.Traseu,x.Perioada_alimentari,x.Carburant,x.Nr_alimentari,fmtNr(x.Cantitate_l),fmtNr(x.Km_luna),fmtNr(x.Consum_L_100km),fmtNr(x.Total_lei)]);body.push(['','TOTAL FLOTA','','','','','',sum.rows.length,fmtNr(sum.totalL),'','',fmtNr(sum.totalLei)]);doc.autoTable({startY:31,head:[['#','Vehicul','Nr. înmatriculare','Șofer','Ruta','Perioada','Carburant','Nr. alimentări','Cantitate totală (l)','KM/luna','Consum L/100km','Valoare totală (lei)']],body,styles:{fontSize:5.8,cellPadding:1.4,valign:'middle',halign:'center'},headStyles:{fillColor:[103,137,170],textColor:255},alternateRowStyles:{fillColor:[234,244,250]},margin:{left:7,right:7}});let y=doc.lastAutoTable.finalY+8;doc.setFontSize(10);doc.text('Raport consum total carburanti - flota',7,y);const fb=sum.fuels.map(x=>[x.Carburant,x.Nr_vehicule,x.Nr_alimentari,fmtNr(x.Cantitate_l),fmtNr(x.Total_lei)]);fb.push(['TOTAL GENERAL FLOTA',sum.vehicles.length,sum.rows.length,fmtNr(sum.totalL),fmtNr(sum.totalLei)]);doc.autoTable({startY:y+3,head:[['Carburant','Nr. vehicule','Nr. alimentări','Cantitate totală (l)','Valoare totală (lei)']],body:fb,styles:{fontSize:7,halign:'center'},headStyles:{fillColor:[103,137,170],textColor:255}});y=doc.lastAutoTable.finalY+9;if(y>175){doc.addPage();y=15;}doc.setFontSize(8);doc.text('CONTABIL',30,y);doc.text('ADMINISTRATOR',115,y);doc.text('STAMPILA',220,y);doc.text('Nume: __________________________',15,y+18);doc.text('Semnatura: _____________________',15,y+29);doc.text('Nume: __________________________',100,y+18);doc.text('Semnatura: _____________________',100,y+29);doc.rect(205,y+5,60,35);const name=`CENTRALIZATOR_LUNAR_CARBURANTI_${ref.getFullYear()}-${String(ref.getMonth()+1).padStart(2,'0')}.pdf`;await shareOrDownload(doc.output('blob'),name,`Centralizator carburanti ${String(ref.getMonth()+1).padStart(2,'0')}.${ref.getFullYear()}`);toast('Centralizatorul PDF este pregătit pentru WhatsApp / partajare.');}catch(e){toast(`Eroare export PDF: ${e.message}`,6000);}}
+function imageFromB64(b64){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src='data:image/png;base64,'+b64;});}
+function putCentered(ctx,box,text,size=13,bold=false,color='#000'){const [x1,y1,x2,y2]=box;ctx.save();ctx.fillStyle=color;ctx.font=`${bold?'700 ':'400 '}${size}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';const max=x2-x1-4;let s=String(text??'');while(ctx.measureText(s).width>max&&size>7){size--;ctx.font=`${bold?'700 ':'400 '}${size}px Arial`;}ctx.fillText(s,(x1+x2)/2,(y1+y2)/2);ctx.restore();}
+function clearInterior(ctx,box,inset=2){const[x1,y1,x2,y2]=box;ctx.fillStyle='#fff';ctx.fillRect(x1+inset,y1+inset,x2-x1-2*inset,y2-y1-2*inset);}
+async function renderFata(v,ref){const img=await imageFromB64(FATA_B64);const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const x=c.getContext('2d');x.drawImage(img,0,0);putCentered(x,[77,132,191,156],'CGA INSTAL',12);putCentered(x,[77,173,191,196],'00381',12);putCentered(x,[3,280,191,304],v.Nr_inmatriculare||'',13);putCentered(x,[3,367,191,409],v.Sofer||'',13);putCentered(x,[2,596,66,616],String(ref.getMonth()+1),12);putCentered(x,[66,596,127,616],'1',12);putCentered(x,[127,596,191,616],'07:00',12);putCentered(x,[620,91,706,111],'CGA INSTAL',12);putCentered(x,[786,91,893,111],'00381',12);putCentered(x,[662,139,724,158],String(ref.getMonth()+1),12);putCentered(x,[724,139,787,158],'1',12);putCentered(x,[787,139,894,158],'07:00',12);putCentered(x,[711,160,895,196],v.Nr_inmatriculare||'',13);putCentered(x,[662,239,895,278],v.Sofer||'',13);putCentered(x,[723,279,895,318],'INTERES DE SERVICIU',12);putCentered(x,[723,319,895,388],'ROMANIA',13);putCentered(x,[515,594,571,614],String(ref.getMonth()+1),12);putCentered(x,[571,594,654,614],'1',12);putCentered(x,[654,594,721,614],'07:00',12);putCentered(x,[515,615,571,635],String(ref.getMonth()+1),12);putCentered(x,[571,615,654,635],String(lastDay(ref)),12);putCentered(x,[654,615,721,635],'07:00',12);x.strokeStyle='red';x.lineWidth=4;x.strokeRect(1,1,c.width-3,c.height-3);return c.toDataURL('image/png');}
+function weekIntervals(ref){const end=lastDay(ref),out=[];let cur=new Date(ref.getFullYear(),ref.getMonth(),1);const endDate=new Date(ref.getFullYear(),ref.getMonth(),end);while(cur<=endDate){const pyWeekday=(cur.getDay()+6)%7;const daysToSat=(5-pyWeekday+7)%7;let seg=new Date(cur);seg.setDate(seg.getDate()+daysToSat);if(seg>endDate)seg=new Date(endDate);out.push([new Date(cur),new Date(seg)]);cur=new Date(seg);cur.setDate(cur.getDate()+1);if(cur.getDay()===0)cur.setDate(cur.getDate()+1);}return out;}
+function fmtInterval(a,b){if(a.getTime()===b.getTime())return fmtDot(a);if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear())return `${String(a.getDate()).padStart(2,'0')}-${String(b.getDate()).padStart(2,'0')}/${String(a.getMonth()+1).padStart(2,'0')}/${a.getFullYear()}`;return `${fmtDot(a)}-${fmtDot(b)}`;}
+async function renderVerso(v,ref,rows){if(rows.length>20)throw new Error(`Foaia de parcurs are ${rows.length} alimentări. Sunt permise maximum 20.`);const img=await imageFromB64(VERSO_B64);const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const x=c.getContext('2d');x.drawImage(img,0,0);const weekRows=[[107,128],[129,150],[151,172],[173,194],[195,216],[217,238]],ints=weekIntervals(ref);weekRows.forEach((yr,i)=>{clearInterior(x,[1,yr[0],190,yr[1]]);if(i<ints.length)putCentered(x,[1,yr[0],190,yr[1]],fmtInterval(...ints[i]),12)});const xleft=1,xright=506,ytop=260,ybottom=458,verts=[1,191,310,372,423,506];x.fillStyle='#fff';x.fillRect(xleft,ytop,xright-xleft,ybottom-ytop);x.strokeStyle='red';x.lineWidth=1;x.strokeRect(xleft,ytop,xright-xleft,ybottom-ytop);const n=Math.max(9,rows.length),rh=(ybottom-ytop)/n,ys=[];for(let i=0;i<=n;i++)ys.push(Math.round(ytop+i*rh));ys[0]=ytop;ys[ys.length-1]=ybottom;for(const y of ys){x.beginPath();x.moveTo(xleft,y);x.lineTo(xright,y);x.stroke();}for(const xx of verts){x.beginPath();x.moveTo(xx,ytop);x.lineTo(xx,ybottom);x.stroke();}clearInterior(x,[424,459,506,479]);let total=0;const fs=n<=9?12:n<=12?10:n<=16?9:8;rows.forEach((r,i)=>{const y1=ys[i]+1,y2=ys[i+1]-1,d=parseDateStrict(r.Data),cant=parseFloatRo(r.Cantitate_l),pret=parseFloatRo(r.Pret_lei_l);let val=parseFloatRo(r.Total_lei);if(val<=0&&cant>0&&pret>0)val=Math.round(cant*pret*100)/100;total+=val;putCentered(x,[2,y1,190,y2],fmtDot(d),fs);putCentered(x,[192,y1,309,y2],String(r.Operatiune||r.Carburant||'').toLowerCase().replace(/^./,m=>m.toUpperCase()),fs);putCentered(x,[311,y1,371,y2],cant.toFixed(2),fs);putCentered(x,[373,y1,422,y2],pret.toFixed(2),fs);putCentered(x,[424,y1,505,y2],`${val.toFixed(2)} lei`,fs);});putCentered(x,[424,459,506,479],`${total.toLocaleString('ro-RO',{minimumFractionDigits:2,maximumFractionDigits:2})} lei`,12,true,'red');x.strokeStyle='red';x.lineWidth=2;x.strokeRect(0,0,c.width-1,c.height-1);return c.toDataURL('image/png');}
+async function generateRouteSheet(){
+  try{
+    const id=Number($('routeVehicle').value),v=state.parcAuto.find(x=>Number(x.ID)===id);
+    if(!v)throw new Error('Selectează o mașină din listă.');
+    const ref=parseDateStrict($('data').value),rows=fuelingsForVehicle(v,ref);
+    if(rows.length>20)throw new Error(`Foaia de parcurs pentru ${String(ref.getMonth()+1).padStart(2,'0')}.${ref.getFullYear()} are ${rows.length} alimentări. Formularul poate afișa maximum 20; nu a fost omisă nicio alimentare.`);
+    const [front,back]=await Promise.all([renderFata(v,ref),renderVerso(v,ref,rows)]);
+    const jsPDF=requireLib('jsPDF',window.jspdf?.jsPDF);
+    const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
+    let w=doc.internal.pageSize.getWidth(),h=doc.internal.pageSize.getHeight();
+    fitImageOnPdf(doc,front,w,h,3);
+    doc.addPage('a4','landscape');
+    w=doc.internal.pageSize.getWidth();h=doc.internal.pageSize.getHeight();
+    fitImageOnPdf(doc,back,w,h,3);
+    const name=`FOAIE_DE_PARCURS_${safeFilename(v.Vehicul)}_${ref.getFullYear()}_${String(ref.getMonth()+1).padStart(2,'0')}.pdf`;
+    closeModal('routeModal');
+    await shareOrDownload(doc.output('blob'),name,`Foaie de parcurs ${v.Vehicul} - ${String(ref.getMonth()+1).padStart(2,'0')}.${ref.getFullYear()}`);
+    toast(`Foaia de parcurs PDF este pregătită: ${v.Vehicul}`,4500);
+  }catch(e){toast(`Eroare foaie de parcurs PDF: ${e.message}`,6000);}
+}
+function clearAll(){
+  if(!state.alimentari.length)return toast('Nu există alimentări de șters.');
+  if(!confirmOrThrow(`Sigur vrei să ștergi TOATE cele ${state.alimentari.length} alimentări salvate?\n\nPARC_AUTO, mașinile și profilurile NU vor fi șterse.`))return;
+  try{
+    localStorage.setItem(STORAGE_KEY+'_BEFORE_CLEAR',JSON.stringify({savedAt:new Date().toISOString(),alimentari:state.alimentari}));
+  }catch(e){}
+  state.alimentari=[];
+  saveState();
+  toast('Toate alimentările au fost șterse. O copie de siguranță locală a fost păstrată înainte de ștergere.',5000);
+}
+
+function ultimaAlimentare(){
+  if(!Array.isArray(state.alimentari)||!state.alimentari.length)return null;
+  return state.alimentari.reduce((best,r)=>(Number(r.ID)||0)>(Number(best.ID)||0)?r:best,state.alimentari[0]);
+}
+function dataRoDinRand(r){
+  try{return parseDateStrict(r.Data).toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'});}catch(e){return String(r.Data||'');}
+}
+function creeazaImagineAlimentare(r){
+  const c=document.createElement('canvas');
+  c.width=1080;
+  c.height=1000;
+
+  const x=c.getContext('2d');
+  const W=c.width;
+  const H=c.height;
+
+  const BLUE='#126CAF';
+  const BG='#F4F6F9';
+  const TEXT='#155B91';
+  const WHITE='#FFFFFF';
+
+  // Fundal identic ca structură cu modelul furnizat.
+  x.fillStyle=BG;
+  x.fillRect(0,0,W,H);
+
+  // Antet albastru.
+  const headerH=130;
+  x.fillStyle=BLUE;
+  x.fillRect(0,0,W,headerH);
+
+  // Titlu.
+  x.textAlign='left';
+  x.textBaseline='middle';
+  x.fillStyle=WHITE;
+  x.font='700 42px Arial, sans-serif';
+  x.fillText('⛽',62,headerH/2);
+  x.fillText('ALIMENTARE CARBURANT',125,headerH/2);
+
+  // Fallback la datele vehiculului din flotă pentru alimentările vechi.
+  const vehicul = Array.isArray(state.parcAuto)
+    ? state.parcAuto.find(v =>
+        String(v.ID)===String(r.Vehicul_ID) ||
+        String(v.Vehicul||'').trim().toUpperCase()===String(r.Vehicul||'').trim().toUpperCase()
+      )
+    : null;
+
+  const reg = String(r.Nr_inmatriculare || vehicul?.Nr_inmatriculare || '');
+  const sofer = String(r.Sofer || vehicul?.Sofer || '');
+  const carburant = String(r.Carburant || vehicul?.Carburant || '');
+
+  const cant = (Number(r.Cantitate_l)||0).toLocaleString('ro-RO',{
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  }) + ' l';
+
+  const pret = (Number(r.Pret_lei_l)||0).toLocaleString('ro-RO',{
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  }) + ' lei';
+
+  const total = (Number(r.Total_lei)||0).toLocaleString('ro-RO',{
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  }) + ' lei';
+
+  const rows=[
+    ['Data:', dataRoDinRand(r)],
+    ['Vehicul:', String(r.Vehicul||vehicul?.Vehicul||'')],
+    ['Nr. înmatriculare:', reg],
+    ['Șofer:', sofer],
+    ['Carburant:', carburant],
+    ['Cantitate:', cant],
+    ['Preț/litru:', pret],
+    ['Total:', total]
+  ];
+
+  const labelX=68;
+  const valueX=450;
+  const firstY=215;
+  const rowGap=96;
+
+  function fitBold(value,maxWidth,startSize=31,minSize=21){
+    let size=startSize;
+    const s=String(value||'');
+    while(size>minSize){
+      x.font=`700 ${size}px Arial, sans-serif`;
+      if(x.measureText(s).width<=maxWidth)break;
+      size-=1;
+    }
+    return size;
+  }
+
+  rows.forEach((row,i)=>{
+    const y=firstY+i*rowGap;
+
+    x.textAlign='left';
+    x.textBaseline='middle';
+    x.fillStyle=TEXT;
+    x.font='700 29px Arial, sans-serif';
+    x.fillText(row[0],labelX,y);
+
+    const fs=fitBold(row[1],W-valueX-55,31,21);
+    x.fillStyle=TEXT;
+    x.font=`700 ${fs}px Arial, sans-serif`;
+    x.fillText(String(row[1]||''),valueX,y);
+  });
+
+  // Chenar discret, ca imaginea-model.
+  x.strokeStyle='#D6DEE7';
+  x.lineWidth=2;
+  x.strokeRect(1,1,W-2,H-2);
+
+  return c;
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+function dataUrlToFile(dataUrl,name){
+  const parts=dataUrl.split(','),mime=(parts[0].match(/:(.*?);/)||[])[1]||'image/png',bin=atob(parts[1]),u8=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
+  return new File([u8],name,{type:mime});
+}
+async function shareWhatsApp(){
+  const r=ultimaAlimentare();
+  if(!r)return toast('Nu există nicio alimentare salvată pentru trimitere.',4500);
+
+  try{
+    const canvas=creeazaImagineAlimentare(r);
+
+    // PNG păstrează claritatea textului și a liniilor din model.
+    const blob=await new Promise((resolve,reject)=>{
+      canvas.toBlob(
+        b=>b?resolve(b):reject(new Error('Imaginea nu a putut fi generată.')),
+        'image/png',
+        1
+      );
+    });
+
+    const name=`ALIMENTARE_${safeFilename(r.Vehicul)}_${String(r.Data||'').replace(/[^0-9A-Za-z]+/g,'_')}.png`;
+    const file=new File([blob],name,{type:'image/png'});
+
+    const text=`Alimentare carburant
+Data: ${dataRoDinRand(r)}
+Mașina: ${r.Vehicul||''}
+Șofer: ${r.Sofer||''}
+Cantitate: ${fmtNr(Number(r.Cantitate_l)||0,'l')}
+Valoare: ${fmtNr(Number(r.Total_lei)||0,'lei')}`;
+
+    await shareImageOrDownload(file,name,text);
+    toast('Poza alimentării este pregătită pentru WhatsApp / partajare.',4500);
+  }catch(e){
+    if(e && e.name==='AbortError')return;
+    toast(`Trimiterea nu a putut fi pornită: ${e.message}`,5000);
+  }
+}
+
+function init(){legacyRepair();$('data').value=isoToday();hydrateVehicles();['km','consum','pret','cant','data','traseu'].forEach(id=>$(id).addEventListener('input',recalc));$('vehicul').addEventListener('change',onVehicleSelected);$('cant').addEventListener('keydown',e=>{if(e.key==='Enter'){$('pret').focus();$('pret').select();}});$('pret').addEventListener('keydown',e=>{if(e.key==='Enter')saveFuel();});$('saveFuel').onclick=saveFuel;$('shareWhatsApp').onclick=shareWhatsApp;$('saveProfile').onclick=saveProfile;$('addVehicle').onclick=()=>openModal('vehicleModal');$('vehicleSave').onclick=addVehicle;$('deleteVehicle').onclick=deleteVehicle;$('generalExcel').onclick=exportGeneral;$('centralPdf').onclick=exportCentralPdf;$('routeSheet').onclick=()=>{hydrateRouteVehicles();openModal('routeModal');};$('routeGenerate').onclick=generateRouteSheet;$('clearAll').onclick=clearAll;$('exportCentralBtn').onclick=exportCentralWorkbook;document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));recalc();setStatus(`Manager Carburant HTML ${BUILD}. Datele se păstrează local pe acest dispozitiv.`);initLicenseAdmin();}
+window.addEventListener('DOMContentLoaded',init);
+</script>
+
+
+
+</body></html>

@@ -1,0 +1,8 @@
+{
+  "appId": "ro.vts.managercarburant",
+  "appName": "Manager Carburant VTS",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": true
+  }
+}
